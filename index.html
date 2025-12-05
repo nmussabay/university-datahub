@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DataHub вузов РК — каталог</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: #e6f0ff; /* нежно-синий светлый фон */
+    color: #1e293b; /* темно-синий текст */
+  }
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #d0e2ff;
+  }
+  h1 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 28px auto;
+    padding: 0 16px;
+  }
+  .controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  input[type="search"], select {
+    background: #fff;
+    border: 1px solid #94a3b8;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #1e293b;
+    min-width: 120px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: #fff; /* белый фон */
+    color: #1e293b;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.1);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(100, 116, 139, 0.2);
+  }
+  .card .title {
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .card .meta {
+    font-size: 13px;
+    color: #64748b;
+  }
+  .pill {
+    display: inline-block;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: #dbeafe;
+    font-size: 12px;
+    color: #1e293b;
+  }
+  .panel {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    bottom: 20px;
+    width: 520px;
+    max-width: calc(100% - 40px);
+    background: #f9fafb; /* светлый фон панели */
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(100, 116, 139, 0.3);
+    padding: 18px;
+    display: none;
+    color: #1e293b;
+  }
+  .panel.show {
+    display: block;
+  }
+  .panel header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #e0e7ff;
+    cursor: pointer;
+    border: 1px solid #a5b4fc;
+    color: #1e293b;
+    user-select: none;
+  }
+  .tab.active {
+    background: #6366f1;
+    border-color: #4338ca;
+    color: #fff;
+  }
+  .section {
+    margin-top: 14px;
+  }
+  .program {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    margin-bottom: 8px;
+    background: #eef2ff;
+  }
+  .btn {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #6366f1;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  footer {
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+  }
+  @media (max-width: 800px) {
+    .panel {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: auto;
+      bottom: 0;
+      width: 100%;
+      height: 60vh;
+      border-radius: 12px 12px 0 0;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect rx='8' width='36' height='36' fill='%236366f1'/><text x='50%' y='55%' font-size='18' font-family='Arial' text-anchor='middle' fill='white'>DH</text></svg>" alt="logo" style="width:36px;height:36px;border-radius:8px">
+  <div>
+    <h1>DataHub вузов РК</h1>
+    <div style="color:#64748b;font-size:13px">Каталог университетов Казахстана — 30 записей</div>
+  </div>
+</header>
+<main class="container">
+  <div class="controls">
+    <input id="search" type="search" placeholder="Поиск по названию или городу...">
+    <select id="cityFilter"><option value="">Все города</option></select>
+    <select id="grantFilter">
+      <option value="">Все гранты</option>
+      <option value="yes">Есть гранты</option>
+      <option value="no">Нет грантов</option>
+    </select>
+    <select id="costFilter">
+      <option value="">Все стоимости</option>
+      <option value="low">до 300 000 тг/год</option>
+      <option value="mid">300 000 - 600 000 тг/год</option>
+      <option value="high">более 600 000 тг/год</option>
+    </select>
+    <select id="sort">
+      <option value="name">Сортировать: название</option>
+      <option value="city">По городу</option>
+      <option value="cost">По стоимости</option>
+    </select>
+    <div style="margin-left:auto;color:#64748b;align-self:center">Нажмите на карточку, чтобы открыть страницу университета</div>
+  </div>
+  <div id="grid" class="grid"></div>
+</main>
+<aside id="panel" class="panel" aria-hidden="true">
+  <header>
+    <div>
+      <div id="panelName" style="font-size:18px;font-weight:800"></div>
+      <div id="panelCity" style="color:#64748b;font-size:13px;margin-top:4px"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="closeBtn" title="Закрыть" style="background:transparent;border:0;color:#64748b;cursor:pointer;font-size:18px">✕</button>
+    </div>
+  </header>
+  <div class="tabs" role="tablist">
+    <div class="tab active" data-tab="about">Об университете</div>
+    <div class="tab" data-tab="programs">Академические программы</div>
+    <div class="tab" data-tab="admission">Приём и поступление</div>
+    <div class="tab" data-tab="tour">3D тур</div>
+  </div>
+  <div id="tabContent" class="section"></div>
+</aside>
+<footer>
+  Сделано для демонстрации — можно расширить: отзывы, рейтинги, интеграция 3D-туров и CMS.
+</footer>
+<script>
+  const universities = [
+    {id:1,name:"Nazarbayev University",city:"Нур‑Султан",desc:"Исследовательский университет с международным фокусом.",
+      programs:["Computer Science (BSc)","Engineering (BEng)","Business (MBA)"],
+      admission:"Конкурсы и вступительные испытания; международные сертификаты учитываются.",
+      coords:{lat:51.1065,lng:71.4106},
+      cost:700000,
+      grant:true
+    },
+    {id:2,name:"Al‑Farabi Kazakh National University",city:"Алматы",desc:"Один из старейших и крупнейших университетов Казахстана.",
+      programs:["Mathematics","Philology","Physics"],
+      admission:"Единое национальное тестирование + внутренние конкурсы.",
+      coords:{lat:43.2383,lng:76.9450},
+      cost:250000,
+      grant:false
+    },
+    {id:3,name:"L. N. Gumilyov Eurasian National University",city:"Нур‑Султан",desc:"Широкий спектр гуманитарных и технических программ.",
+      programs:["International Relations","History","Biology"],
+      admission:"UNT и внутренние экзамены.",
+      coords:{lat:51.1285,lng:71.4306},
+      cost:300000,
+      grant:true
+    },
+    {id:4,name:"Kazakh-British Technical University",city:"Алматы",desc:"Технический вуз с сильным международным сотрудничеством.",
+      programs:["Computer Engineering","Telecommunications","Business Management"],
+      admission:"Вступительные экзамены, собеседование и мотивационное письмо.",
+      coords:{lat:43.2220,lng:76.8512},
+      cost:400000,
+      grant:true
+    },
+    {id:5,name:"South Kazakhstan State Pedagogical University",city:"Шымкент",desc:"Ведущий педагогический вуз юга Казахстана.",
+      programs:["Education","Psychology","Foreign Languages"],
+      admission:"Поступление по результатам UNT и внутренних испытаний.",
+      coords:{lat:42.3184,lng:69.5950},
+      cost:180000,
+      grant:false
+    },
+    {id:6,name:"Kokshetau State University",city:"Кокшетау",desc:"Университет с широким спектром гуманитарных и технических направлений.",
+      programs:["Law","Economics","Ecology"],
+      admission:"Поступление на основе результатов UNT и собеседования.",
+      coords:{lat:53.2850,lng:69.3862},
+      cost:200000,
+      grant:true
+    },
+    {id:7,name:"Karaganda State Technical University",city:"Караганда",desc:"Технический университет с сильным инженерным направлением.",
+      programs:["Mechanical Engineering","Mining","Automation"],
+      admission:"Вступительные испытания и конкурс документов.",
+      coords:{lat:49.8267,lng:73.0864},
+      cost:350000,
+      grant:false
+    },
+    {id:8,name:"Shakarim State University",city:"Семей",desc:"Университет с гуманитарными и техническими программами.",
+      programs:["History","Chemistry","Mathematics"],
+      admission:"Поступление по результатам UNT и внутренних экзаменов.",
+      coords:{lat:50.4200,lng:80.2580},
+      cost:220000,
+      grant:true
+    },
+    {id:9,name:"Auezov South Kazakhstan State University",city:"Шымкент",desc:"Крупный университет юга Казахстана с разносторонними программами.",
+      programs:["Journalism","Economics","Biology"],
+      admission:"UNT и конкурсные испытания для поступления.",
+      coords:{lat:42.3185,lng:69.5955},
+      cost:260000,
+      grant:false
+    },
+    {id:10,name:"West Kazakhstan State Medical University",city:"Уральск",desc:"Медицинский вуз с современными программами.",
+      programs:["General Medicine","Dentistry","Pharmacy"],
+      admission:"Вступительные экзамены и собеседование.",
+      coords:{lat:51.2264,lng:51.4000},
+      cost:600000,
+      grant:true
+    },
+    {id:11,name:"Kazakh National Agrarian University",city:"Алматы",desc:"Специализируется на сельском хозяйстве и биотехнологиях.",
+      programs:["Agronomy","Veterinary Science","Biotechnology"],
+      admission:"UNT и профильные экзамены.",
+      coords:{lat:43.2540,lng:76.9180},
+      cost:230000,
+      grant:false
+    },
+    {id:12,name:"Eurasian National Technical University",city:"Нур‑Султан",desc:"Ведущий технический вуз с акцентом на инновации.",
+      programs:["Information Technology","Mechanical Engineering","Energy"],
+      admission:"Конкурс на основе UNT и внутренние испытания.",
+      coords:{lat:51.1360,lng:71.4300},
+      cost:450000,
+      grant:true
+    },
+    {id:13,name:"Kazakh University of Economics, Finance and International Trade",city:"Алматы",desc:"Экономический вуз с международными программами.",
+      programs:["Economics","Finance","International Trade"],
+      admission:"UNT и собеседование.",
+      coords:{lat:43.2560,lng:76.9300},
+      cost:380000,
+      grant:false
+    },
+    {id:14,name:"Kyzylorda State University",city:"Кызылорда",desc:"Региональный университет с широким выбором направлений.",
+      programs:["History","Law","Education"],
+      admission:"UNT и внутренние экзамены.",
+      coords:{lat:44.8500,lng:65.5000},
+      cost:160000,
+      grant:true
+    },
+    {id:15,name:"Aktobe Regional State University",city:"Актобе",desc:"Университет с гуманитарным и техническим направлениями.",
+      programs:["Sociology","Engineering","Management"],
+      admission:"UNT и внутренние конкурсы.",
+      coords:{lat:50.2910,lng:57.1680},
+      cost:190000,
+      grant:false
+    },
+    {id:16,name:"Pavlodar State University",city:"Павлодар",desc:"Разносторонний вуз с программами в разных сферах.",
+      programs:["Physics","Chemistry","Economics"],
+      admission:"UNT и внутренние экзамены.",
+      coords:{lat:52.3010,lng:76.9490},
+      cost:210000,
+      grant:true
+    },
+    {id:17,name:"Semey State Medical University",city:"Семей",desc:"Медицинский вуз с современной подготовкой специалистов.",
+      programs:["Medicine","Nursing","Pharmacy"],
+      admission:"Вступительные экзамены и собеседование.",
+      coords:{lat:50.4000,lng:80.2620},
+      cost:580000,
+      grant:false
+    },
+    {id:18,name:"Taraz State University",city:"Тараз",desc:"Исторически сложившийся университет южного региона.",
+      programs:["History","Law","Pedagogy"],
+      admission:"UNT и внутренние экзамены.",
+      coords:{lat:42.9000,lng:71.3500},
+      cost:170000,
+      grant:true
+    },
+    {id:19,name:"Turkestan State University",city:"Туркестан",desc:"Вуз с акцентом на современные технологии и гуманитарные науки.",
+      programs:["Computer Science","Philosophy","Management"],
+      admission:"UNT и дополнительные испытания.",
+      coords:{lat:43.3000,lng:68.2500},
+      cost:240000,
+      grant:false
+    },
+    {id:20,name:"Ural State University",city:"Уральск",desc:"Разносторонний университет с сильными инженерными программами.",
+      programs:["Mechanical Engineering","Mathematics","Economics"],
+      admission:"UNT и внутренние тесты.",
+      coords:{lat:51.2300,lng:51.3900},
+      cost:220000,
+      grant:true
+    },
+    {id:21,name:"Zhezkazgan University",city:"Жезказган",desc:"Региональный вуз с техническими и гуманитарными программами.",
+      programs:["Mining","Geology","Law"],
+      admission:"UNT и внутренние экзамены.",
+      coords:{lat:47.8000,lng:67.7000},
+      cost:180000,
+      grant:false
+    },
+    {id:22,name:"Kostanay State University",city:"Костанай",desc:"Университет с сильным педагогическим направлением.",
+      programs:["Education","Psychology","History"],
+      admission:"UNT и внутренние конкурсы.",
+      coords:{lat:53.2000,lng:63.6000},
+      cost:190000,
+      grant:true
+    },
+    {id:23,name:"East Kazakhstan State Technical University",city:"Өскемен",desc:"Технический вуз с инновационными программами.",
+      programs:["Electrical Engineering","Automation","Construction"],
+      admission:"UNT и вступительные испытания.",
+      coords:{lat:49.9500,lng:82.6000},
+      cost:350000,
+      grant:false
+    },
+    {id:24,name:"Kazakh Ablai Khan University of International Relations and World Languages",city:"Алматы",desc:"Университет с международным уклоном.",
+      programs:["International Relations","Linguistics","Economics"],
+      admission:"UNT и собеседование.",
+      coords:{lat:43.2350,lng:76.8850},
+      cost:320000,
+      grant:true
+    },
+    {id:25,name:"Kazakh Leading Academy of Architecture and Civil Engineering",city:"Алматы",desc:"Вуз с упором на архитектуру и строительство.",
+      programs:["Architecture","Civil Engineering","Urban Planning"],
+      admission:"Вступительные испытания и портфолио.",
+      coords:{lat:43.2600,lng:76.9450},
+      cost:400000,
+      grant:false
+    },
+    {id:26,name:"Kokshetau Technical Institute",city:"Кокшетау",desc:"Технический институт с широким выбором инженерных программ.",
+      programs:["Mechanical Engineering","Computer Science","Energy"],
+      admission:"UNT и внутренние тесты.",
+      coords:{lat:53.3000,lng:69.3800},
+      cost:210000,
+      grant:true
+    },
+    {id:27,name:"Kazakh National Conservatory",city:"Алматы",desc:"Ведущий музыкальный вуз страны.",
+      programs:["Music Performance","Composition","Conducting"],
+      admission:"Прослушивание и творческий конкурс.",
+      coords:{lat:43.2400,lng:76.9500},
+      cost:250000,
+      grant:false
+    },
+    {id:28,name:"Kazakh-Russian International University",city:"Алматы",desc:"Международный университет с разноплановыми программами.",
+      programs:["Business","Law","Engineering"],
+      admission:"UNT и собеседование.",
+      coords:{lat:43.2500,lng:76.9200},
+      cost:370000,
+      grant:true
+    },
+    {id:29,name:"West Kazakhstan State University",city:"Уральск",desc:"Университет с гуманитарными и техническими направлениями.",
+      programs:["Sociology","Economics","Law"],
+      admission:"UNT и внутренние экзамены.",
+      coords:{lat:51.2250,lng:51.4100},
+      cost:200000,
+      grant:false
+    },
+    {id:30,name:"Zhubanov Aktobe Regional University",city:"Актобе",desc:"Региональный университет с широким спектром специальностей.",
+      programs:["Philosophy","Economics","Mathematics"],
+      admission:"UNT и внутренние конкурсы.",
+      coords:{lat:50.2800,lng:57.1700},
+      cost:190000,
+      grant:true
+    },
+    // Добавить остальные 27 по образцу...
+  ];
+
+  const grid = document.getElementById('grid');
+  const search = document.getElementById('search');
+  const cityFilter = document.getElementById('cityFilter');
+  const grantFilter = document.getElementById('grantFilter');
+  const costFilter = document.getElementById('costFilter');
+  const sort = document.getElementById('sort');
+  const panel = document.getElementById('panel');
+  const panelName = document.getElementById('panelName');
+  const panelCity = document.getElementById('panelCity');
+  const tabContent = document.getElementById('tabContent');
+  const closeBtn = document.getElementById('closeBtn');
+
+  // Заполняем фильтр городов
+  const cities = Array.from(new Set(universities.map(u=>u.city))).sort();
+  cities.forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c;
+    o.textContent=c;
+    cityFilter.appendChild(o);
+  });
+
+  function renderGrid(list){
+    grid.innerHTML='';
+    if(list.length===0){
+      grid.innerHTML='<div style="color:#64748b;text-align:center;width:100%;padding:40px 0">По вашему запросу ничего не найдено</div>';
+      return;
+    }
+    list.forEach(u=>{
+      const el=document.createElement('div');
+      el.className='card';
+      el.tabIndex=0;
+      el.innerHTML=`
+        <div class="title">${u.name}</div>
+        <div class="meta">${u.city} · <span class="pill">Программ: ${u.programs.length}</span></div>
+        <div style="margin-top:8px;color:#64748b;font-size:13px">${u.desc}</div>
+        <div style="margin-top:8px;font-size:13px">
+          <strong>Стоимость: </strong>${u.cost.toLocaleString()} тг/год<br>
+          <strong>Гранты: </strong>${u.grant ? 'Есть' : 'Нет'}
+        </div>
+      `;
+      el.addEventListener('click',()=>openPanel(u));
+      el.addEventListener('keypress',e=>{if(e.key==='Enter') openPanel(u)});
+      grid.appendChild(el);
+    });
+  }
+
+  function openPanel(u){
+    panel.classList.add('show');
+    panel.setAttribute('aria-hidden','false');
+    panelName.textContent = u.name;
+    panelCity.textContent = u.city;
+    panel.dataset.currentId = u.id;
+    setActiveTab('about');
+    renderAbout(u);
+  }
+
+  function closePanel(){
+    panel.classList.remove('show');
+    panel.setAttribute('aria-hidden','true');
+  }
+  closeBtn.addEventListener('click', closePanel);
+
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', e=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    setActiveTab(e.currentTarget.dataset.tab);
+  }));
+
+  function setActiveTab(tab){
+    const id = +panel.dataset.currentId;
+    const u = universities.find(x=>x.id===id);
+    if(!u) return;
+    if(tab==='about') renderAbout(u);
+    if(tab==='programs') renderPrograms(u);
+    if(tab==='admission') renderAdmission(u);
+    if(tab==='tour') renderTour(u);
+  }
+
+  function renderAbout(u){
+    tabContent.innerHTML = `
+      <div style="font-size:14px;color:#64748b">${u.desc}</div>
+      <div class="section"><strong>Контакты</strong><div style="color:#64748b;margin-top:6px">Город: ${u.city}<br>Телефон: +7 (727) 000-00-00<br>Email: info@${u.name.replace(/[^a-z0-9]/gi,'').toLowerCase()}.edu.kz</div></div>
+      <div class="section"><strong>Координаты</strong><div style="color:#64748b;margin-top:6px">lat: ${u.coords.lat}, lng: ${u.coords.lng}</div></div>
+      <div class="section"><strong>Стоимость обучения</strong><div style="color:#64748b;margin-top:6px">${u.cost.toLocaleString()} тг/год</div></div>
+      <div class="section"><strong>Гранты</strong><div style="color:#64748b;margin-top:6px">${u.grant ? 'Доступны гранты' : 'Гранты не предоставляются'}</div></div>
+    `;
+  }
+
+  function renderPrograms(u){
+    tabContent.innerHTML = `<div><strong>Академические программы</strong></div>`;
+    u.programs.forEach(p=>{
+      const d = document.createElement('div');
+      d.className = 'program';
+      d.innerHTML = `<div style="font-weight:700">${p}</div><div style="color:#64748b;margin-top:6px">Уровни: бакалавриат / магистратура — проверьте разделы на официальном сайте.</div>`;
+      tabContent.appendChild(d);
+    });
+  }
+
+  function renderAdmission(u){
+    tabContent.innerHTML = `<div><strong>Приём и поступление</strong></div><div style="color:#64748b;margin-top:8px">${u.admission}</div><div style="margin-top:12px"><a class="btn" href="#" id="applyBtn">Как поступить</a></div>`;
+    document.getElementById('applyBtn').addEventListener('click', e=>{
+      e.preventDefault();
+      alert('Шаблон: Подать заявление через онлайн‑портал университета, подготовить сертификаты и портфолио.');
+    });
+  }
+
+  function renderTour(u){
+    tabContent.innerHTML = `<div><strong>3D тур</strong></div>
+      <iframe 
+        width="100%" 
+        height="320" 
+        frameborder="0" 
+        style="border:0;border-radius:8px;margin-top:8px" 
+        src="https://maps.google.com/maps?q=${encodeURIComponent(u.name + ' ' + u.city)}&t=k&output=embed" 
+        allowfullscreen>
+      </iframe>`;
+  }
+
+  function applyFilters(){
+    const q = search.value.trim().toLowerCase();
+    const city = cityFilter.value;
+    const grantVal = grantFilter.value;
+    const costVal = costFilter.value;
+
+    let list = universities.filter(u=>{
+      // Поиск по названию и городу
+      if(q && !(u.name.toLowerCase().includes(q) || u.city.toLowerCase().includes(q))) return false;
+
+      if(city && u.city !== city) return false;
+
+      if(grantVal === 'yes' && !u.grant) return false;
+      if(grantVal === 'no' && u.grant) return false;
+
+      if(costVal === 'low' && u.cost > 300000) return false;
+      if(costVal === 'mid' && (u.cost < 300000 || u.cost > 600000)) return false;
+      if(costVal === 'high' && u.cost <= 600000) return false;
+
+      return true;
+    });
+
+    // Сортировка
+    if(sort.value === 'name') {
+      list.sort((a,b)=>a.name.localeCompare(b.name));
+    } else if(sort.value === 'city') {
+      list.sort((a,b)=>a.city.localeCompare(b.city));
+    } else if(sort.value === 'cost') {
+      list.sort((a,b)=>a.cost - b.cost);
+    }
+
+    renderGrid(list);
+  }
+
+  // Навешиваем обработчики на фильтры и поиск
+  [search, cityFilter, grantFilter, costFilter, sort].forEach(el=>{
+    el.addEventListener('input', applyFilters);
+  });
+
+  // Изначальный рендер всего списка
+  renderGrid(universities);
+</script>
+</body>
+</html>
